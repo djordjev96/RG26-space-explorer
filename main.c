@@ -110,7 +110,7 @@ static void on_display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //gluLookAt(2, 5, 4, 0, 0, 0, 0, 1, 0);
-    gluLookAt(0, 1000, 200, 0, 0, 0, 0, 1, 0);
+    gluLookAt(0, 500, 50, 0, 0, 0, 0, 1, 0);
 
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(15*24);
@@ -119,7 +119,7 @@ static void on_display(void)
     glPushMatrix();
         glRotatef(sun_rotation, 0,0,1);
         glColor3f(1,1,0);
-        glutWireSphere(100,50,50);
+        glutSolidSphere(100,50,50);
     glPopMatrix();
 
     // Uglovi rotacije Zemlje oko svoje ose i oko Sunca
@@ -132,7 +132,7 @@ static void on_display(void)
     glPushMatrix();
         glRotatef(earth_rotation, 0,0,1);
         glColor3f(0,0,1);
-        glutWireSphere(0.917,50,50);
+        glutSolidSphere(0.917,50,50);
     glPopMatrix();
 
 
