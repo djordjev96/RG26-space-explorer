@@ -14,11 +14,12 @@ static void on_display(void);
 static void on_timer(int id);
 
 /* 
-Radius sunca - 	696,392 km - stavljamo na 100
-Radius zemlje - 6371 km - 109 puta manji od sunca - stavljamo na 0.917
-Udaljenost zemlje od sunca - 149.600.000 km - prevelika vrednost
-    pa cemo da stavimo kao dva puta radius sunca
-
+Radius Sunca - 	696,392 km - stavljamo na 100
+Radius Zemlje - 6371 km - 109 puta manji od Sunca - stavljamo na 0.917
+Udaljenost Zemlje od Sunca - 149.600.000 km - prevelika vrednost
+    pa cemo da stavimo kao tri puta radius sunca
+Radius Merkura - 2439,7 km - 285 puta manji od sunca - stavljamo na 0.351
+Udaljenost Merkura od Sunca - 57.910.000 km - stavljamo na 120
 */
 
 
@@ -58,7 +59,7 @@ static void on_timer(int id)
         return;
 
     hours += 18;
-
+    
     glutPostRedisplay();
 
     if (animation_ongoing) {
@@ -110,7 +111,7 @@ static void on_display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //gluLookAt(2, 5, 4, 0, 0, 0, 0, 1, 0);
-    gluLookAt(0, 500, 50, 0, 0, 0, 0, 1, 0);
+    gluLookAt(0, 600, 50, 0, 0, 0, 0, 1, 0);
 
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(15*24);
@@ -122,19 +123,34 @@ static void on_display(void)
         glutSolidSphere(100,50,50);
     glPopMatrix();
 
-    // Uglovi rotacije Zemlje oko svoje ose i oko Sunca
+    // Uglovi Zemljine revolucije i rotacije
+    float mercur_revolution = 360*hours/(88*24);
+    float mercur_rotation = 360*hours/(58.7*24);
+    
+    // Merkur
+    
+    glPushMatrix();
+        glRotatef(mercur_revolution, 0,0,1);
+        glTranslatef(120,0,0);  
+        glRotatef(mercur_rotation, 0,0,1);
+        glColor3f(0,0,0.3);
+        glutWireSphere(0.351,50,50);
+    glPopMatrix();
+
+
+    // Uglovi Zemljine revolucije i rotacije
     float earth_revolution = 360 * hours / (365 * 24);
     float earth_rotation = 360*hours/24;
 
     // Zemlja
-    glRotatef(earth_revolution, 0,0,1);
-    glTranslatef(200,0,0);  
+    
     glPushMatrix();
+        glRotatef(earth_revolution, 0,0,1);
+        glTranslatef(300,0,0); 
         glRotatef(earth_rotation, 0,0,1);
         glColor3f(0,0,1);
         glutSolidSphere(0.917,50,50);
     glPopMatrix();
-
 
     /* Nova slika se salje na ekran. */
     glutSwapBuffers();
