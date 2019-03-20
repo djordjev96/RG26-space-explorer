@@ -20,6 +20,10 @@ Udaljenost Zemlje od Sunca - 149.600.000 km - prevelika vrednost
     pa cemo da stavimo kao tri puta radius sunca
 Radius Merkura - 2439,7 km - 285 puta manji od sunca - stavljamo na 0.351
 Udaljenost Merkura od Sunca - 57.910.000 km - stavljamo na 120
+Radius Venere - 6051,8 km - 115 puta manji od Sunca - stavljamo na 0.87
+Udaljenost Venere od Sunca - 108.200.000 km - stavljamo na 217.4
+Radius Marsa - 3.389,5 km - 205 puta manji od Sunca - stavljamo na 0.488
+Udaljenost Marsa od Sunca - 227.900.000 km - stavljamo na 461.5
 */
 
 
@@ -30,7 +34,7 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
     /* Kreira se prozor. */
-    glutInitWindowSize(500, 500);
+    glutInitWindowSize(800, 800);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
@@ -111,7 +115,7 @@ static void on_display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //gluLookAt(2, 5, 4, 0, 0, 0, 0, 1, 0);
-    gluLookAt(0, 600, 50, 0, 0, 0, 0, 1, 0);
+    gluLookAt(0, 0, 700, 0, 0, 0, 0, 1, 0);
 
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(15*24);
@@ -123,20 +127,32 @@ static void on_display(void)
         glutSolidSphere(100,50,50);
     glPopMatrix();
 
-    // Uglovi Zemljine revolucije i rotacije
-    float mercur_revolution = 360*hours/(88*24);
-    float mercur_rotation = 360*hours/(58.7*24);
+    // Uglovi Merkurove revolucije i rotacije
+    float mercury_revolution = 360*hours/(88*24);
+    float mercury_rotation = 360*hours/(58.7*24);
     
     // Merkur
-    
     glPushMatrix();
-        glRotatef(mercur_revolution, 0,0,1);
+        glRotatef(mercury_revolution, 0,0,1);
         glTranslatef(120,0,0);  
-        glRotatef(mercur_rotation, 0,0,1);
-        glColor3f(0,0,0.3);
-        glutWireSphere(0.351,50,50);
+        glRotatef(mercury_rotation, 0,0,1);
+        glColor3f(0,0,1);
+        glutSolidSphere(0.351,50,50);
     glPopMatrix();
 
+
+    // Uglovi Venerine revolucije i rotacije
+    float venus_revolution = 360*hours/(224.7*24);
+    float venus_rotation = 360*hours/(243*24); 
+
+    // Venera
+    glPushMatrix();
+        glRotatef(venus_revolution, 0,0,1);
+        glTranslatef(217.4,0,0);  
+        glRotatef(venus_rotation, 0,0,1);
+        glColor3f(1,0,0);
+        glutSolidSphere(0.87,50,50);
+    glPopMatrix();
 
     // Uglovi Zemljine revolucije i rotacije
     float earth_revolution = 360 * hours / (365 * 24);
@@ -150,6 +166,19 @@ static void on_display(void)
         glRotatef(earth_rotation, 0,0,1);
         glColor3f(0,0,1);
         glutSolidSphere(0.917,50,50);
+    glPopMatrix();
+
+    // Uglovi Marsove revolucije i rotacije
+    float mars_revolution = 360 * hours / (686.98 * 24);
+    float mars_rotation = 360*hours/24.623;
+
+    // Mars
+    glPushMatrix();
+        glRotatef(mars_revolution, 0,0,1);
+        glTranslatef(461.5,0,0); 
+        glRotatef(mars_rotation, 0,0,1);
+        glColor3f(1,0,0);
+        glutSolidSphere(0.488,50,50);
     glPopMatrix();
 
     /* Nova slika se salje na ekran. */
