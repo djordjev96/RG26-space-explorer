@@ -24,6 +24,10 @@ Radius Venere - 6051,8 km - 115 puta manji od Sunca - stavljamo na 0.87
 Udaljenost Venere od Sunca - 108.200.000 km - stavljamo na 217.4
 Radius Marsa - 3.389,5 km - 205 puta manji od Sunca - stavljamo na 0.488
 Udaljenost Marsa od Sunca - 227.900.000 km - stavljamo na 461.5
+Radius Jupitera - 69.911 km - 10 puta manji od sunca - stavljamo na 10
+Udaljenost Jupitera od Sunca - 778.500.000 km - (1562.5) ali zbog prevelike vrednosti cemo staviti na 600
+Radius Saturna - 58.232 km  - 12 puta manji od Sunca - stavljamo na 8.33
+Udaljenost Saturna od Sunca - 1.434.000.000 km - (prevelika vrednost) stavicemo na 750
 */
 
 
@@ -115,7 +119,7 @@ static void on_display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //gluLookAt(2, 5, 4, 0, 0, 0, 0, 1, 0);
-    gluLookAt(0, 0, 700, 0, 0, 0, 0, 1, 0);
+    gluLookAt(0, 0, 1300, 0, 0, 0, 0, 1, 0);
 
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(15*24);
@@ -179,6 +183,32 @@ static void on_display(void)
         glRotatef(mars_rotation, 0,0,1);
         glColor3f(1,0,0);
         glutSolidSphere(0.488,50,50);
+    glPopMatrix();
+
+    // Uglovi Jupiterove revolucije i rotacije
+    float jupiter_revolution = 360 * hours / (4332.59 * 24);
+    float jupiter_rotation = 360*hours/9.912;
+
+    // Jupiter
+    glPushMatrix();
+        glRotatef(jupiter_revolution, 0,0,1);
+        glTranslatef(600,0,0); 
+        glRotatef(jupiter_rotation, 0,0,1);
+        glColor3f(0,1,0);
+        glutSolidSphere(10,50,50);
+    glPopMatrix();
+
+    // Uglovi Saturnove revolucije i rotacije
+    float saturn_revolution = 360 * hours / (10759 * 24);
+    float saturn_rotation = 360*hours/10.656;
+
+    // Saturn
+    glPushMatrix();
+        glRotatef(saturn_revolution, 0,0,1);
+        glTranslatef(750,0,0); 
+        glRotatef(saturn_rotation, 0,0,1);
+        glColor3f(0,0,1);
+        glutSolidSphere(8.33,50,50);
     glPopMatrix();
 
     /* Nova slika se salje na ekran. */
