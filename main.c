@@ -14,7 +14,7 @@ static void on_display(void);
 static void on_timer(int id);
 
 /* 
-Radius Sunca - 	696,392 km - stavljamo na 100
+Radius Sunca - 	696.392 km - stavljamo na 100
 Radius Zemlje - 6371 km - 109 puta manji od Sunca - stavljamo na 0.917
 Udaljenost Zemlje od Sunca - 149.600.000 km - prevelika vrednost
     pa cemo da stavimo kao tri puta radius sunca
@@ -28,6 +28,10 @@ Radius Jupitera - 69.911 km - 10 puta manji od sunca - stavljamo na 10
 Udaljenost Jupitera od Sunca - 778.500.000 km - (1562.5) ali zbog prevelike vrednosti cemo staviti na 600
 Radius Saturna - 58.232 km  - 12 puta manji od Sunca - stavljamo na 8.33
 Udaljenost Saturna od Sunca - 1.434.000.000 km - (prevelika vrednost) stavicemo na 750
+Radius Urana - 25.362 km - 27 puta manji od Sunca - stavljamo na 3.7
+Udaljenost Urana od Sunca - 2.871.000.000 km - stavljamo na 850
+Radius Neptuna - 24.622 km - 28 puta manji od Sunca - stavljamo na 3.57
+Udaljenost Neptuna od Sunca - 4.495.000.000 km - stavljamo na 900
 */
 
 
@@ -66,7 +70,7 @@ static void on_timer(int id)
     if (TIMER_ID != id)
         return;
 
-    hours += 18;
+    hours += 100;
     
     glutPostRedisplay();
 
@@ -119,7 +123,7 @@ static void on_display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //gluLookAt(2, 5, 4, 0, 0, 0, 0, 1, 0);
-    gluLookAt(0, 0, 1300, 0, 0, 0, 0, 1, 0);
+    gluLookAt(0, 0, 1350, 0, 0, 0, 0, 1, 0);
 
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(15*24);
@@ -152,7 +156,7 @@ static void on_display(void)
     // Venera
     glPushMatrix();
         glRotatef(venus_revolution, 0,0,1);
-        glTranslatef(217.4,0,0);  
+        glTranslatef(200,0,0);  
         glRotatef(venus_rotation, 0,0,1);
         glColor3f(1,0,0);
         glutSolidSphere(0.87,50,50);
@@ -179,7 +183,7 @@ static void on_display(void)
     // Mars
     glPushMatrix();
         glRotatef(mars_revolution, 0,0,1);
-        glTranslatef(461.5,0,0); 
+        glTranslatef(400,0,0); 
         glRotatef(mars_rotation, 0,0,1);
         glColor3f(1,0,0);
         glutSolidSphere(0.488,50,50);
@@ -192,7 +196,7 @@ static void on_display(void)
     // Jupiter
     glPushMatrix();
         glRotatef(jupiter_revolution, 0,0,1);
-        glTranslatef(600,0,0); 
+        glTranslatef(500,0,0); 
         glRotatef(jupiter_rotation, 0,0,1);
         glColor3f(0,1,0);
         glutSolidSphere(10,50,50);
@@ -205,11 +209,39 @@ static void on_display(void)
     // Saturn
     glPushMatrix();
         glRotatef(saturn_revolution, 0,0,1);
-        glTranslatef(750,0,0); 
+        glTranslatef(600,0,0); 
         glRotatef(saturn_rotation, 0,0,1);
         glColor3f(0,0,1);
         glutSolidSphere(8.33,50,50);
     glPopMatrix();
+
+    // Uglovi Uranove revolucije i rotacije
+    float uranus_revolution = 360 * hours / (30685 * 24);
+    float uranus_rotation = 360*hours/17.24;
+
+    // Uran
+    glPushMatrix();
+        glRotatef(uranus_revolution, 0,0,1);
+        glTranslatef(700,0,0); 
+        glRotatef(uranus_rotation, 0,0,1);
+        glColor3f(1,0,0);
+        glutSolidSphere(3.7,50,50);
+    glPopMatrix();
+
+    // Uglovi Neptunove revolucije i rotacije
+    float neptune_revolution = 360 * hours / (60190 * 24);
+    float neptune_rotation = 360*hours/19.1;
+
+    // Uran
+    glPushMatrix();
+        glRotatef(neptune_revolution, 0,0,1);
+        glTranslatef(750,0,0); 
+        glRotatef(neptune_rotation, 0,0,1);
+        glColor3f(0,0,1);
+        glutSolidSphere(3.57,50,50);
+    glPopMatrix();
+
+
 
     /* Nova slika se salje na ekran. */
     glutSwapBuffers();
