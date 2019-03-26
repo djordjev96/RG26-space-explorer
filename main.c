@@ -123,7 +123,7 @@ static void on_display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //gluLookAt(2, 5, 4, 0, 0, 0, 0, 1, 0);
-    gluLookAt(0, 0, 1350, 0, 0, 0, 0, 1, 0);
+    gluLookAt(0, 0, 800, 300, 0, 0, 0, 1, 0);
 
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(15*24);
