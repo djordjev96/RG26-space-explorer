@@ -1,17 +1,29 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
+#include "image.h"
 
 #define TIMER_ID 1
 #define TIMER_INTERVAL 20
+#define FILENAME0 "textures/sky.bmp"
+#define FILENAME1 "textures/sun.bmp"
+#define FILENAME2 "textures/jupiter.bmp"
 
+GLuint names[3];
 float hours;
 int animation_ongoing;
+
+static int widthW,heightW;
 
 /* Deklaracije callback funkcija. */
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_reshape(int width, int height);
 static void on_display(void);
 static void on_timer(int id);
+static void initialize(void);
+static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad);
+static void create_texture(int num, char* name, Image * image);
+
 
 /* 
 Radius Sunca - 	696.392 km - stavljamo na 100
@@ -44,7 +56,7 @@ int main(int argc, char **argv)
     /* Kreira se prozor. */
     glutInitWindowSize(800, 800);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow(argv[0]);
+    glutCreateWindow("Space Explorer");
 
     /* Registruju se callback funkcije. */
     glutKeyboardFunc(on_keyboard);
@@ -52,12 +64,14 @@ int main(int argc, char **argv)
     glutDisplayFunc(on_display);
 
     /* Obavlja se OpenGL inicijalizacija. */
-    glClearColor(0, 0, 0, 0);
+    glClearColor(0,0,0,0);
     glEnable(GL_DEPTH_TEST);
 
     /* Inicijalizujemo promenljive */
     hours = 0;
     animation_ongoing = 0;
+
+    initialize();
 
     /* Program ulazi u glavnu petlju. */
     glutMainLoop();
@@ -65,12 +79,54 @@ int main(int argc, char **argv)
     return 0;
 }
 
+static void initialize(void)
+{
+    /* Objekat koji predstavlja teskturu ucitanu iz fajla. */
+    Image * image;
+
+    /* Postavlja se boja pozadine. */
+    glClearColor(0,0,0,0);
+
+    /* Ukljucuje se testiranje z-koordinate piksela. */
+    glEnable(GL_DEPTH_TEST);
+
+    /* Ukljucuju se teksture. */
+    glEnable(GL_TEXTURE_2D);
+
+    glTexEnvf(GL_TEXTURE_ENV,
+              GL_TEXTURE_ENV_MODE,
+              GL_REPLACE);
+
+    /*
+     * Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz
+     * fajla.
+     */
+    image = image_init(0, 0);
+
+    /* Generisu se identifikatori tekstura. */
+    glGenTextures(3, names);
+
+    create_texture(0, FILENAME0, image);
+    create_texture(1, FILENAME1, image);
+    create_texture(2, FILENAME2, image);
+
+    /* Iskljucujemo aktivnu teksturu */
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    /* Unistava se objekat za citanje tekstura iz fajla. */
+    image_done(image);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+}
+
 static void on_timer(int id)
 {
     if (TIMER_ID != id)
         return;
 
-    hours += 100;
+    hours += 1;
     
     glutPostRedisplay();
 
@@ -103,6 +159,37 @@ static void on_keyboard(unsigned char key, int x, int y)
     }
 }
 
+static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad) {
+    glPushMatrix();
+        glRotatef(planet_revolution, 0,0,1);
+        glTranslatef(distance,0,0); 
+        glRotatef(planet_rotation, 0,0,1);
+        gluQuadricNormals(quad, GLU_SMOOTH);
+	    gluQuadricTexture(quad, GL_TRUE);
+        glBindTexture(GL_TEXTURE_2D, names[planet_num]);
+        gluSphere(quad,size,50,50);
+    glPopMatrix();
+glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+static void create_texture(int num, char* name, Image * image) {
+    image_read(image, name);
+
+    glBindTexture(GL_TEXTURE_2D, names[num]);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
+}
+
 static void on_reshape(int width, int height)
 {
     /* Podesava se viewport. */
@@ -112,6 +199,8 @@ static void on_reshape(int width, int height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(60, (float) width / height, 1, 1500);
+    widthW = width; /*remembering width and height on reshape in global variables*/
+	heightW = height;
 }
 
 static void on_display(void)
@@ -119,22 +208,65 @@ static void on_display(void)
     /* Brise se prethodni sadrzaj prozora. */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    /* Podesava se vidna tacka. */
-    glMatrixMode(GL_MODELVIEW);
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadIdentity();
+    // gluLookAt(0, 0, 800, 300, 0, 0, 0, 1, 0);
+
+     glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+
+    glMatrixMode(GL_PROJECTION);
+	    glLoadIdentity();
+	    glOrtho(0, widthW, 0 , heightW, -1, 1);
+
+
+
+    glBindTexture(GL_TEXTURE_2D, names[0]);
+    glBegin(GL_QUADS);
+
+        glTexCoord2f(0, 0);
+        glVertex2i(0, 0);
+
+        glTexCoord2f(1, 0);
+        glVertex2i(widthW, 0);
+
+        glTexCoord2f(1, 1);
+        glVertex2i(widthW, heightW);
+
+        glTexCoord2f(0, 1);
+        glVertex2i(0, heightW);
+    glEnd();
+
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glEnable(GL_DEPTH_TEST); /*Re enabling depth testing*/
+    glClear(GL_DEPTH_BUFFER_BIT); /*Clearing depth buffer*/
     glLoadIdentity();
-    //gluLookAt(2, 5, 4, 0, 0, 0, 0, 1, 0);
-    gluLookAt(0, 0, 800, 300, 0, 0, 0, 1, 0);
+        gluPerspective(60, (float) widthW/heightW, 1, 1000); /*Setting perspective again*/
+    
+    glMatrixMode(GL_MODELVIEW); 
+    glLoadIdentity();
+    gluLookAt(0, 0, 500, 300, 0, 0, 0, 1, 0);
+
+    
+    GLUquadric* quad = gluNewQuadric();
 
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(15*24);
 
     // Sunce
+
+    
     glPushMatrix();
         glRotatef(sun_rotation, 0,0,1);
-        glColor3f(1,1,0);
-        glutSolidSphere(100,50,50);
+        gluQuadricNormals(quad, GLU_SMOOTH);
+	    gluQuadricTexture(quad, GL_TRUE);
+        glBindTexture(GL_TEXTURE_2D, names[1]);
+        gluSphere(quad,100,50,50);
     glPopMatrix();
 
+    
     // Uglovi Merkurove revolucije i rotacije
     float mercury_revolution = 360*hours/(88*24);
     float mercury_rotation = 360*hours/(58.7*24);
@@ -147,6 +279,7 @@ static void on_display(void)
         glColor3f(0,0,1);
         glutSolidSphere(0.351,50,50);
     glPopMatrix();
+    
 
 
     // Uglovi Venerine revolucije i rotacije
@@ -194,14 +327,8 @@ static void on_display(void)
     float jupiter_rotation = 360*hours/9.912;
 
     // Jupiter
-    glPushMatrix();
-        glRotatef(jupiter_revolution, 0,0,1);
-        glTranslatef(500,0,0); 
-        glRotatef(jupiter_rotation, 0,0,1);
-        glColor3f(0,1,0);
-        glutSolidSphere(10,50,50);
-    glPopMatrix();
-
+    draw_planet(jupiter_revolution, jupiter_rotation, 500, 10, 2, quad);
+    
     // Uglovi Saturnove revolucije i rotacije
     float saturn_revolution = 360 * hours / (10759 * 24);
     float saturn_rotation = 360*hours/10.656;
@@ -232,7 +359,7 @@ static void on_display(void)
     float neptune_revolution = 360 * hours / (60190 * 24);
     float neptune_rotation = 360*hours/19.1;
 
-    // Uran
+    // Neptun
     glPushMatrix();
         glRotatef(neptune_revolution, 0,0,1);
         glTranslatef(750,0,0); 
@@ -241,6 +368,7 @@ static void on_display(void)
         glutSolidSphere(3.57,50,50);
     glPopMatrix();
 
+    
 
 
     /* Nova slika se salje na ekran. */
