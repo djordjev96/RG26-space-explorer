@@ -7,9 +7,16 @@
 #define TIMER_INTERVAL 20
 #define FILENAME0 "textures/sky.bmp"
 #define FILENAME1 "textures/sun.bmp"
-#define FILENAME2 "textures/jupiter.bmp"
+#define FILENAME2 "textures/mercury.bmp"
+#define FILENAME3 "textures/venus.bmp"
+#define FILENAME4 "textures/earth.bmp"
+#define FILENAME5 "textures/mars.bmp"
+#define FILENAME6 "textures/jupiter.bmp"
+#define FILENAME7 "textures/saturn.bmp"
+#define FILENAME8 "textures/uranus.bmp"
+#define FILENAME9 "textures/neptune.bmp"
 
-GLuint names[3];
+GLuint names[9];
 float hours;
 int animation_ongoing;
 
@@ -104,11 +111,18 @@ static void initialize(void)
     image = image_init(0, 0);
 
     /* Generisu se identifikatori tekstura. */
-    glGenTextures(3, names);
+    glGenTextures(9, names);
 
     create_texture(0, FILENAME0, image);
     create_texture(1, FILENAME1, image);
     create_texture(2, FILENAME2, image);
+    create_texture(3, FILENAME3, image);
+    create_texture(4, FILENAME4, image);
+    create_texture(5, FILENAME5, image);
+    create_texture(6, FILENAME6, image);
+    create_texture(7, FILENAME7, image);
+    create_texture(8, FILENAME8, image);
+    create_texture(9, FILENAME9, image);
 
     /* Iskljucujemo aktivnu teksturu */
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -126,7 +140,7 @@ static void on_timer(int id)
     if (TIMER_ID != id)
         return;
 
-    hours += 1;
+    hours += 2;
     
     glutPostRedisplay();
 
@@ -247,17 +261,15 @@ static void on_display(void)
     
     glMatrixMode(GL_MODELVIEW); 
     glLoadIdentity();
-    gluLookAt(0, 0, 500, 300, 0, 0, 0, 1, 0);
+    gluLookAt(300, 0, 700, 350, 0, 0, 0, 1, 0);
 
     
     GLUquadric* quad = gluNewQuadric();
 
     // Ugao rotacije Sunca oko svoje ose 
-    float sun_rotation = 360*hours/(15*24);
+    float sun_rotation = 360*hours/(30*24);
 
     // Sunce
-
-    
     glPushMatrix();
         glRotatef(sun_rotation, 0,0,1);
         gluQuadricNormals(quad, GLU_SMOOTH);
@@ -266,110 +278,63 @@ static void on_display(void)
         gluSphere(quad,100,50,50);
     glPopMatrix();
 
+    glBindTexture(GL_TEXTURE_2D, 0);
     
     // Uglovi Merkurove revolucije i rotacije
     float mercury_revolution = 360*hours/(88*24);
     float mercury_rotation = 360*hours/(58.7*24);
     
     // Merkur
-    glPushMatrix();
-        glRotatef(mercury_revolution, 0,0,1);
-        glTranslatef(120,0,0);  
-        glRotatef(mercury_rotation, 0,0,1);
-        glColor3f(0,0,1);
-        glutSolidSphere(0.351,50,50);
-    glPopMatrix();
+    draw_planet(mercury_revolution, mercury_rotation, 150, 0.351, 2, quad);
     
-
-
     // Uglovi Venerine revolucije i rotacije
     float venus_revolution = 360*hours/(224.7*24);
     float venus_rotation = 360*hours/(243*24); 
 
     // Venera
-    glPushMatrix();
-        glRotatef(venus_revolution, 0,0,1);
-        glTranslatef(200,0,0);  
-        glRotatef(venus_rotation, 0,0,1);
-        glColor3f(1,0,0);
-        glutSolidSphere(0.87,50,50);
-    glPopMatrix();
+    draw_planet(venus_revolution, venus_rotation, 200, 0.87, 3, quad);
 
     // Uglovi Zemljine revolucije i rotacije
     float earth_revolution = 360 * hours / (365 * 24);
     float earth_rotation = 360*hours/24;
 
     // Zemlja
-    
-    glPushMatrix();
-        glRotatef(earth_revolution, 0,0,1);
-        glTranslatef(300,0,0); 
-        glRotatef(earth_rotation, 0,0,1);
-        glColor3f(0,0,1);
-        glutSolidSphere(0.917,50,50);
-    glPopMatrix();
+    draw_planet(earth_revolution, earth_rotation, 300, 0.917, 4, quad);    
 
     // Uglovi Marsove revolucije i rotacije
     float mars_revolution = 360 * hours / (686.98 * 24);
     float mars_rotation = 360*hours/24.623;
 
     // Mars
-    glPushMatrix();
-        glRotatef(mars_revolution, 0,0,1);
-        glTranslatef(400,0,0); 
-        glRotatef(mars_rotation, 0,0,1);
-        glColor3f(1,0,0);
-        glutSolidSphere(0.488,50,50);
-    glPopMatrix();
+    draw_planet(mars_revolution, mars_rotation, 400, 0.488, 5, quad);
 
     // Uglovi Jupiterove revolucije i rotacije
     float jupiter_revolution = 360 * hours / (4332.59 * 24);
     float jupiter_rotation = 360*hours/9.912;
 
     // Jupiter
-    draw_planet(jupiter_revolution, jupiter_rotation, 500, 10, 2, quad);
+    draw_planet(jupiter_revolution, jupiter_rotation, 500, 10, 6, quad);
     
     // Uglovi Saturnove revolucije i rotacije
     float saturn_revolution = 360 * hours / (10759 * 24);
     float saturn_rotation = 360*hours/10.656;
 
     // Saturn
-    glPushMatrix();
-        glRotatef(saturn_revolution, 0,0,1);
-        glTranslatef(600,0,0); 
-        glRotatef(saturn_rotation, 0,0,1);
-        glColor3f(0,0,1);
-        glutSolidSphere(8.33,50,50);
-    glPopMatrix();
+    draw_planet(saturn_revolution, saturn_rotation, 600, 8.33, 7, quad);
 
     // Uglovi Uranove revolucije i rotacije
     float uranus_revolution = 360 * hours / (30685 * 24);
     float uranus_rotation = 360*hours/17.24;
 
     // Uran
-    glPushMatrix();
-        glRotatef(uranus_revolution, 0,0,1);
-        glTranslatef(700,0,0); 
-        glRotatef(uranus_rotation, 0,0,1);
-        glColor3f(1,0,0);
-        glutSolidSphere(3.7,50,50);
-    glPopMatrix();
+    draw_planet(uranus_revolution, uranus_rotation, 700, 3.7, 8, quad);
 
     // Uglovi Neptunove revolucije i rotacije
     float neptune_revolution = 360 * hours / (60190 * 24);
     float neptune_rotation = 360*hours/19.1;
 
     // Neptun
-    glPushMatrix();
-        glRotatef(neptune_revolution, 0,0,1);
-        glTranslatef(750,0,0); 
-        glRotatef(neptune_rotation, 0,0,1);
-        glColor3f(0,0,1);
-        glutSolidSphere(3.57,50,50);
-    glPopMatrix();
-
-    
-
+    draw_planet(neptune_revolution, neptune_rotation, 750, 3.57, 9, quad);
 
     /* Nova slika se salje na ekran. */
     glutSwapBuffers();
