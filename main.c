@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
+#include <math.h>
 #include "image.h"
 
 #define TIMER_ID 1
@@ -18,7 +19,9 @@
 
 GLuint names[9];
 float hours;
-int animation_ongoing;
+static int animation_ongoing;
+static int motor = 0;
+static int motor2 = 0;
 
 static int widthW,heightW;
 
@@ -33,23 +36,23 @@ static void create_texture(int num, char* name, Image * image);
 
 
 /* 
-Radius Sunca - 	696.392 km - stavljamo na 100
-Radius Zemlje - 6371 km - 109 puta manji od Sunca - stavljamo na 0.917
+Radius Sunca - 	696.392 km - stavljamo na 1000
+Radius Zemlje - 6371 km - 109 puta manji od Sunca - stavljamo na 9.17
 Udaljenost Zemlje od Sunca - 149.600.000 km - prevelika vrednost
     pa cemo da stavimo kao tri puta radius sunca
-Radius Merkura - 2439,7 km - 285 puta manji od sunca - stavljamo na 0.351
+Radius Merkura - 2439,7 km - 285 puta manji od sunca - stavljamo na 3.51
 Udaljenost Merkura od Sunca - 57.910.000 km - stavljamo na 120
-Radius Venere - 6051,8 km - 115 puta manji od Sunca - stavljamo na 0.87
+Radius Venere - 6051,8 km - 115 puta manji od Sunca - stavljamo na 8.7
 Udaljenost Venere od Sunca - 108.200.000 km - stavljamo na 217.4
-Radius Marsa - 3.389,5 km - 205 puta manji od Sunca - stavljamo na 0.488
+Radius Marsa - 3.389,5 km - 205 puta manji od Sunca - stavljamo na 4.88
 Udaljenost Marsa od Sunca - 227.900.000 km - stavljamo na 461.5
-Radius Jupitera - 69.911 km - 10 puta manji od sunca - stavljamo na 10
+Radius Jupitera - 69.911 km - 10 puta manji od sunca - stavljamo na 100
 Udaljenost Jupitera od Sunca - 778.500.000 km - (1562.5) ali zbog prevelike vrednosti cemo staviti na 600
-Radius Saturna - 58.232 km  - 12 puta manji od Sunca - stavljamo na 8.33
+Radius Saturna - 58.232 km  - 12 puta manji od Sunca - stavljamo na 83.3
 Udaljenost Saturna od Sunca - 1.434.000.000 km - (prevelika vrednost) stavicemo na 750
-Radius Urana - 25.362 km - 27 puta manji od Sunca - stavljamo na 3.7
+Radius Urana - 25.362 km - 27 puta manji od Sunca - stavljamo na 37
 Udaljenost Urana od Sunca - 2.871.000.000 km - stavljamo na 850
-Radius Neptuna - 24.622 km - 28 puta manji od Sunca - stavljamo na 3.57
+Radius Neptuna - 24.622 km - 28 puta manji od Sunca - stavljamo na 35.7
 Udaljenost Neptuna od Sunca - 4.495.000.000 km - stavljamo na 900
 */
 
@@ -140,7 +143,7 @@ static void on_timer(int id)
     if (TIMER_ID != id)
         return;
 
-    hours += 2;
+    hours += 0.1;
     
     glutPostRedisplay();
 
@@ -165,9 +168,24 @@ static void on_keyboard(unsigned char key, int x, int y)
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
         }
         break;
-
+    case 'w':
+    case 'W':
+        motor+=1;
+        break;
+    case 'd':
+    case 'D':
+        motor2+=1;
+        break;
+    case 'a':
+    case 'A':
+        motor2-=1;
+        break;
     case 's':
     case 'S':
+        motor-=1;
+        break;
+    case 'h':
+    case 'H':
         animation_ongoing = 0;
         break;
     }
@@ -232,7 +250,7 @@ static void on_display(void)
 
     glMatrixMode(GL_PROJECTION);
 	    glLoadIdentity();
-	    glOrtho(0, widthW, 0 , heightW, -1, 1);
+	    glOrtho(0 , widthW, 0 , heightW, -1, 1);
 
 
 
@@ -261,7 +279,8 @@ static void on_display(void)
     
     glMatrixMode(GL_MODELVIEW); 
     glLoadIdentity();
-    gluLookAt(300, 0, 700, 350, 0, 0, 0, 1, 0);
+    gluLookAt(700, 0, 900, 500, 0, 0, 0, 1, 0);
+//    gluLookAt(400, 0, 700, 300, 0, 0, 0, 1, 0);
 
     
     GLUquadric* quad = gluNewQuadric();
@@ -275,7 +294,7 @@ static void on_display(void)
         gluQuadricNormals(quad, GLU_SMOOTH);
 	    gluQuadricTexture(quad, GL_TRUE);
         glBindTexture(GL_TEXTURE_2D, names[1]);
-        gluSphere(quad,100,50,50);
+        gluSphere(quad,300,50,50);
     glPopMatrix();
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -285,56 +304,66 @@ static void on_display(void)
     float mercury_rotation = 360*hours/(58.7*24);
     
     // Merkur
-    draw_planet(mercury_revolution, mercury_rotation, 150, 0.351, 2, quad);
+    draw_planet(mercury_revolution, mercury_rotation, 350, 3.51, 2, quad);
     
     // Uglovi Venerine revolucije i rotacije
     float venus_revolution = 360*hours/(224.7*24);
     float venus_rotation = 360*hours/(243*24); 
 
     // Venera
-    draw_planet(venus_revolution, venus_rotation, 200, 0.87, 3, quad);
+    draw_planet(venus_revolution, venus_rotation, 400, 8.7, 3, quad);
 
     // Uglovi Zemljine revolucije i rotacije
     float earth_revolution = 360 * hours / (365 * 24);
     float earth_rotation = 360*hours/24;
 
     // Zemlja
-    draw_planet(earth_revolution, earth_rotation, 300, 0.917, 4, quad);    
+    draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, quad);    
 
     // Uglovi Marsove revolucije i rotacije
     float mars_revolution = 360 * hours / (686.98 * 24);
     float mars_rotation = 360*hours/24.623;
 
     // Mars
-    draw_planet(mars_revolution, mars_rotation, 400, 0.488, 5, quad);
+    draw_planet(mars_revolution, mars_rotation, 480, 4.88, 5, quad);
 
     // Uglovi Jupiterove revolucije i rotacije
     float jupiter_revolution = 360 * hours / (4332.59 * 24);
     float jupiter_rotation = 360*hours/9.912;
 
     // Jupiter
-    draw_planet(jupiter_revolution, jupiter_rotation, 500, 10, 6, quad);
+    draw_planet(jupiter_revolution, jupiter_rotation, 600, 100, 6, quad);
     
     // Uglovi Saturnove revolucije i rotacije
     float saturn_revolution = 360 * hours / (10759 * 24);
     float saturn_rotation = 360*hours/10.656;
 
-    // Saturn
-    draw_planet(saturn_revolution, saturn_rotation, 600, 8.33, 7, quad);
+    // Saturn(600)
+    draw_planet(saturn_revolution, saturn_rotation, 800, 83.3, 7, quad);
 
     // Uglovi Uranove revolucije i rotacije
     float uranus_revolution = 360 * hours / (30685 * 24);
     float uranus_rotation = 360*hours/17.24;
 
     // Uran
-    draw_planet(uranus_revolution, uranus_rotation, 700, 3.7, 8, quad);
+    draw_planet(uranus_revolution, uranus_rotation, 930, 37, 8, quad);
 
     // Uglovi Neptunove revolucije i rotacije
     float neptune_revolution = 360 * hours / (60190 * 24);
     float neptune_rotation = 360*hours/19.1;
 
     // Neptun
-    draw_planet(neptune_revolution, neptune_rotation, 750, 3.57, 9, quad);
+    draw_planet(neptune_revolution, neptune_rotation, 1010, 35.7, 9, quad);
+
+    // glPushMatrix();
+    //     glTranslatef(500 - motor,300 + motor2,0); 
+    //     gluSphere(quad,2,50,50);
+    // glPopMatrix();
+    glPushMatrix();
+        glTranslatef(500 - motor,300 + motor2,0); 
+        glRotatef(0, 1+motor2,1,0);
+        gluSphere(quad,2,50,50);
+    glPopMatrix();
 
     /* Nova slika se salje na ekran. */
     glutSwapBuffers();
