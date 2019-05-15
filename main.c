@@ -296,7 +296,7 @@ static void on_display(void)
     // gluLookAt(700, 0, 900, 500, 0, 0, 0, 1, 0);
     gluLookAt(ship_position[0] + 50 , ship_position[1] + 30, 20, 0, camera, 0, 0, 0, 1);
     // gluLookAt(500, 0, 700, 0, 0, 0, 0, 1, 0);
-    // gluLookAt(0, 0, 1000, 0, 0, 0, 0, 1, 0);
+    // gluLookAt(100, 0, 1000, 0, 0, 0, 0, 1, 0);
 
     GLUquadric* quad = gluNewQuadric();
     //glRotatef(motor2*50,0,0,1);
