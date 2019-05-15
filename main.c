@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <GL/glut.h>
 #include <math.h>
-#include "image.h"
+#include "src/image.h"
 #include <string.h>
 
 #define TIMER_ID 1
