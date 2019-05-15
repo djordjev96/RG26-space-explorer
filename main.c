@@ -3,6 +3,7 @@
 #include <GL/glut.h>
 #include <math.h>
 #include "image.h"
+#include <string.h>
 
 #define TIMER_ID 1
 #define TIMER_INTERVAL 20
@@ -20,10 +21,12 @@
 GLuint names[9];
 float hours;
 static int animation_ongoing;
-static int motor = 0;
-static int motor2 = 0;
+static float motor = 0;
+static float motor2 = 0;
+static float camera = 0;
 
 static int widthW,heightW;
+GLdouble ship_position[] = {940.0, 450.0, 0};
 
 /* Deklaracije callback funkcija. */
 static void on_keyboard(unsigned char key, int x, int y);
@@ -31,10 +34,10 @@ static void on_reshape(int width, int height);
 static void on_display(void);
 static void on_timer(int id);
 static void initialize(void);
-static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad);
+static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad, float position);
 static void create_texture(int num, char* name, Image * image);
-
-
+static void create_map(GLUquadric* quad);
+void drawBitmapText();
 /* 
 Radius Sunca - 	696.392 km - stavljamo na 1000
 Radius Zemlje - 6371 km - 109 puta manji od Sunca - stavljamo na 9.17
@@ -99,6 +102,8 @@ static void initialize(void)
 
     /* Ukljucuje se testiranje z-koordinate piksela. */
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+
 
     /* Ukljucuju se teksture. */
     glEnable(GL_TEXTURE_2D);
@@ -143,7 +148,7 @@ static void on_timer(int id)
     if (TIMER_ID != id)
         return;
 
-    hours += 0.1;
+    hours += 0.05;
     
     glutPostRedisplay();
 
@@ -170,7 +175,7 @@ static void on_keyboard(unsigned char key, int x, int y)
         break;
     case 'w':
     case 'W':
-        motor+=1;
+        motor-=1;
         break;
     case 'd':
     case 'D':
@@ -182,19 +187,28 @@ static void on_keyboard(unsigned char key, int x, int y)
         break;
     case 's':
     case 'S':
-        motor-=1;
+        motor+=1;
         break;
     case 'h':
     case 'H':
         animation_ongoing = 0;
         break;
+    case 'z':
+    case 'Z':
+        camera -= 5;
+        break;
+    case 'x':
+    case 'X':
+        camera += 5;
+        break;
+
     }
 }
 
-static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad) {
+static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad, float position) {
     glPushMatrix();
         glRotatef(planet_revolution, 0,0,1);
-        glTranslatef(distance,0,0); 
+        glTranslatef(distance,position,0); 
         glRotatef(planet_rotation, 0,0,1);
         gluQuadricNormals(quad, GLU_SMOOTH);
 	    gluQuadricTexture(quad, GL_TRUE);
@@ -279,12 +293,37 @@ static void on_display(void)
     
     glMatrixMode(GL_MODELVIEW); 
     glLoadIdentity();
-    gluLookAt(700, 0, 900, 500, 0, 0, 0, 1, 0);
-//    gluLookAt(400, 0, 700, 300, 0, 0, 0, 1, 0);
+    // gluLookAt(700, 0, 900, 500, 0, 0, 0, 1, 0);
+    gluLookAt(ship_position[0] + 50 , ship_position[1] + 30, 20, 0, camera, 0, 0, 0, 1);
+    // gluLookAt(500, 0, 700, 0, 0, 0, 0, 1, 0);
+    // gluLookAt(0, 0, 1000, 0, 0, 0, 0, 1, 0);
 
-    
     GLUquadric* quad = gluNewQuadric();
+    //glRotatef(motor2*50,0,0,1);
 
+    create_map(quad);
+
+    // drawBitmapText();
+
+    // glPushMatrix();
+    //     glTranslatef(500 - motor,300 + motor2,0); 
+    //     gluSphere(quad,2,50,50);
+    // glPopMatrix();
+
+    // glRotatef(motor2,0,0,1);
+    glPushMatrix();
+        ship_position[0] = 940 + motor;
+        ship_position[1] = 450 + motor2; 
+        printf("%f %f\n", ship_position[0],ship_position[1]);
+        glTranslatef(ship_position[0],ship_position[1],ship_position[2]); 
+        gluSphere(quad,1,50,50);
+    glPopMatrix();
+
+    /* Nova slika se salje na ekran. */
+    glutSwapBuffers();
+}
+
+static void create_map(GLUquadric* quad) {
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(30*24);
 
@@ -304,67 +343,95 @@ static void on_display(void)
     float mercury_rotation = 360*hours/(58.7*24);
     
     // Merkur
-    draw_planet(mercury_revolution, mercury_rotation, 350, 3.51, 2, quad);
+    draw_planet(mercury_revolution, mercury_rotation, 350, 3.51, 2, quad, 0);
     
     // Uglovi Venerine revolucije i rotacije
     float venus_revolution = 360*hours/(224.7*24);
     float venus_rotation = 360*hours/(243*24); 
 
     // Venera
-    draw_planet(venus_revolution, venus_rotation, 400, 8.7, 3, quad);
+    draw_planet(venus_revolution, venus_rotation, 400, 8.7, 3, quad,200);
+    int br = 0;
+    if(ship_position[0] > 395 & ship_position[0] < 405 & ship_position[1] > 145 & ship_position[1] < 155) {
+        br++;
+        printf("%d\n",br);
+    }
+    else {
+        glPushMatrix();
+            glColor3f(0,1,1);
+            glTranslatef(400,150,0); 
+            gluSphere(quad,1,50,50);
+        glPopMatrix();
+    }
+
+    
 
     // Uglovi Zemljine revolucije i rotacije
     float earth_revolution = 360 * hours / (365 * 24);
     float earth_rotation = 360*hours/24;
 
     // Zemlja
-    draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, quad);    
+    draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, quad, 350);    
 
     // Uglovi Marsove revolucije i rotacije
     float mars_revolution = 360 * hours / (686.98 * 24);
     float mars_rotation = 360*hours/24.623;
 
     // Mars
-    draw_planet(mars_revolution, mars_rotation, 480, 4.88, 5, quad);
+    draw_planet(mars_revolution, mars_rotation, 480, 4.88, 5, quad, 500);
 
     // Uglovi Jupiterove revolucije i rotacije
     float jupiter_revolution = 360 * hours / (4332.59 * 24);
     float jupiter_rotation = 360*hours/9.912;
 
     // Jupiter
-    draw_planet(jupiter_revolution, jupiter_rotation, 600, 100, 6, quad);
+    draw_planet(jupiter_revolution, jupiter_rotation, 600, 100, 6, quad,550);
     
     // Uglovi Saturnove revolucije i rotacije
     float saturn_revolution = 360 * hours / (10759 * 24);
     float saturn_rotation = 360*hours/10.656;
 
     // Saturn(600)
-    draw_planet(saturn_revolution, saturn_rotation, 800, 83.3, 7, quad);
+    draw_planet(saturn_revolution, saturn_rotation, 800, 83.3, 7, quad,700);
 
     // Uglovi Uranove revolucije i rotacije
     float uranus_revolution = 360 * hours / (30685 * 24);
     float uranus_rotation = 360*hours/17.24;
 
     // Uran
-    draw_planet(uranus_revolution, uranus_rotation, 930, 37, 8, quad);
+    draw_planet(uranus_revolution, uranus_rotation, 930, 37, 8, quad,800);
 
     // Uglovi Neptunove revolucije i rotacije
     float neptune_revolution = 360 * hours / (60190 * 24);
     float neptune_rotation = 360*hours/19.1;
 
     // Neptun
-    draw_planet(neptune_revolution, neptune_rotation, 1010, 35.7, 9, quad);
+    draw_planet(neptune_revolution, neptune_rotation, 1010, 35.7, 9, quad, 900);
+}
 
-    // glPushMatrix();
-    //     glTranslatef(500 - motor,300 + motor2,0); 
-    //     gluSphere(quad,2,50,50);
-    // glPopMatrix();
-    glPushMatrix();
-        glTranslatef(500 - motor,300 + motor2,0); 
-        glRotatef(0, 1+motor2,1,0);
-        gluSphere(quad,2,50,50);
-    glPopMatrix();
-
-    /* Nova slika se salje na ekran. */
-    glutSwapBuffers();
+void drawBitmapText() 
+{  
+	glMatrixMode(GL_PROJECTION); 
+	glPushMatrix();  
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW); 
+	glPushMatrix(); 
+	glLoadIdentity();
+	glColor3f(1, 0, 0);
+	gluOrtho2D(0.0, widthW, heightW, 0.0);                 
+	char display_string[32];
+	int words = sprintf(display_string,"%s", "Sakupio si:");
+    strcat(display_string, "3/5");
+	if(words < 0)
+		exit(1);
+	glRasterPos2i(10, heightW-10); 
+	int d = (int) strlen(display_string);
+	for (int i = 0; i < d; i++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, display_string[i]);
+	
+	glMatrixMode(GL_PROJECTION); 
+	glPopMatrix(); 
+	glMatrixMode(GL_MODELVIEW); 
+	glPopMatrix(); 
+	glutPostRedisplay();
 }
