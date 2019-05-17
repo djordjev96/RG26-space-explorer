@@ -1,7 +1,7 @@
 # Space Explorer
 
-Projekat radjen u sklopu kursa Racunarska grafika na Matematickom fakultetu u Beogradu.
-Space Explorer je simulacija u kojoj ste vi u ulozi svemirskog broda koji ima zadatak da pronadje resurse koje se nalaze negde u svemiru.
+Projekat radjen u sklopu kursa Racunarska grafika na Matematickom fakultetu u Beogradu.   
+Space Explorer je simulacija u kojoj ste vi u ulozi svemirskog broda koji ima zadatak da pronadje resurse koje se nalaze negde u svemiru.   
 Odnos velicina planeta je dobar osim Sunca koje bi trebalo da bude 3+ puta vece ali je zbog velicine scene ostavljeno ovako. Takodje, udaljenost planeta od Sunca je stavljeno nasumicno, opet zbog velicine scene. Rotacija i revolucija planeta je napravljeno po podacima sa wikipedie. 
 
 ![Screenshot](screenshots/screenshot06_2.png)
