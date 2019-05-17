@@ -148,6 +148,8 @@ static void on_timer(int id)
 {
     if (TIMER_ID != id)
         return;
+
+    // menjamo brzinu simulacije u zavisnosti od odabira
     if(speedOfGame == 1) {
         hours += 0.2;
     }
@@ -182,16 +184,20 @@ static void on_keyboard(unsigned char key, int x, int y)
         break;
     case 's':
     case 'S':
+        // zaustavljamo animaciju
         animation_ongoing = 0;
         break;
     case 'a':
     case 'A':
+        // pomeramo kameru ulevo
         camera -= 5;
         break;
     case 'd':
     case 'D':
+        // pomeramo kameru udesno
         camera += 5;
         break;
+    // biramo brzinu simulacije
     case '1':
         speedOfGame = 1;
         break;
@@ -223,12 +229,16 @@ void SpecialInput(int key, int x, int y) {
 // f-ja koja iscrtava planetu
 static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, float position) {
     glPushMatrix();
+        // rotacija oko Sunca
         glRotatef(planet_revolution,0,0,1);
-        glTranslatef(distance,position,0); 
+        // udaljenost od Sunca
+        glTranslatef(distance,position,0);
+        // rotacija oko svoje ose 
         glRotatef(planet_rotation, 0,0,1);
         gluQuadricNormals(quad, GLU_SMOOTH);
 	    gluQuadricTexture(quad, GL_TRUE);
         glBindTexture(GL_TEXTURE_2D, names[planet_num]);
+        // ukoliko je u pitanju Saturn crtamo i disk oko njega
         if(planet_num == 7) {
             gluDisk(quad, 90, 150, 50, 50);
         }
@@ -265,7 +275,7 @@ static void on_reshape(int width, int height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(60, (float) width / height, 1, 1500);
-    widthW = width; /*remembering width and height on reshape in global variables*/
+    widthW = width;
 	heightW = height;
 }
 
@@ -277,11 +287,9 @@ static void on_display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-
     glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0 , widthW, 0 , heightW, -1, 1);
-
 
     // Iscrtavamo pozadinu
     glBindTexture(GL_TEXTURE_2D, names[0]);
@@ -304,35 +312,36 @@ static void on_display(void)
     glEnable(GL_DEPTH_TEST); /*Re enabling depth testing*/
     glClear(GL_DEPTH_BUFFER_BIT); /*Clearing depth buffer*/
     glLoadIdentity();
-        gluPerspective(60, (float) widthW/heightW, 1, 1000); /*Setting perspective again*/
+    gluPerspective(60, (float) widthW/heightW, 1, 1000); /*Setting perspective again*/
     
     glMatrixMode(GL_MODELVIEW); 
     glLoadIdentity();
+    // kamera nam prati nasu letelicu
     gluLookAt(ship_position[0] + 60 , ship_position[1] + 30, 20, 0, camera, 0, 0, 0, 1);
     create_map();
 
-    double clip_plane[] = {0, 0, 1, 0.3};
-
+    // letelica (polovimo sferu)
+    double clip_plane[] = {0, 0, 1, 0.2};
     glClipPlane(GL_CLIP_PLANE0, clip_plane);
     glEnable(GL_CLIP_PLANE0);
 
-    // letelica
     glPushMatrix();
         glTranslatef(ship_position[0],ship_position[1],ship_position[2]); 
-        gluSphere(quad,1,50,50);
-        printf("%f %f\n", ship_position[0], ship_position[1]);
+        gluSphere(quad,1.5,50,50);
         ship_position[0] = 940 + goUD;
         ship_position[1] = 450 + goLR; 
     glPopMatrix();
 
     glDisable(GL_CLIP_PLANE0);
 
+    // ukoliko pronadjemo sve resurse neka nam izbaci poruku u terminalu
     if(foundedItems[0] && foundedItems[1] && foundedItems[2]) {
-        printf("Uspesno si pronasao sve resurse");
+        printf("Uspesno si pronasao sve resurse\n");
     }
 
+    // ukoliko dodjemo previse blizu Suncu neka nam izbaci poruku i vrati nas na pocetnu poziciju
     if(ship_position[0] < 350) {    
-        printf("Bio si previse blizu Sunca");
+        printf("Bio si previse blizu Sunca\n");
         goUD = 0;
         goLR = 0;
     }
@@ -375,7 +384,6 @@ static void create_map() {
 
     // Zemlja
     draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, 200);    
-
 
     // Uglovi Marsove revolucije i rotacije
     float mars_revolution = 360 * hours / (686.98 * 24);
@@ -420,6 +428,7 @@ static void create_map() {
 
 // Kreiramo item koji treba da se pokupi i proveravamo da li ga je korisnik pokupio
 void createItem(int x, int y, int i) {
+    // ukoliko smo sakupili predmet, necemo ga vise prikazivati
     if(((ship_position[0] > x-5) && (ship_position[0] < x+5) && (ship_position[1] > y-5) && (ship_position[1] < y+5)) || (foundedItems[i] == true)) {
         if(foundedItems[i] == false) {
             foundedItems[i] = true;
