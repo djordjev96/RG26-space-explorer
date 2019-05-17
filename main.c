@@ -4,6 +4,7 @@
 #include <math.h>
 #include "src/image.h"
 #include <string.h>
+#include <stdbool.h>
 
 #define TIMER_ID 1
 #define TIMER_INTERVAL 20
@@ -21,9 +22,11 @@
 GLuint names[9];
 float hours;
 static int animation_ongoing;
-static float motor = 0;
-static float motor2 = 0;
+static float goUD = 0;
+static float goLR = 0;
 static float camera = 0;
+static bool foundedItems[] = {false, false, false};
+static GLUquadric* quad;
 
 static int widthW,heightW;
 GLdouble ship_position[] = {940.0, 450.0, 0};
@@ -34,10 +37,13 @@ static void on_reshape(int width, int height);
 static void on_display(void);
 static void on_timer(int id);
 static void initialize(void);
-static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad, float position);
+static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, float position);
 static void create_texture(int num, char* name, Image * image);
-static void create_map(GLUquadric* quad);
-void drawBitmapText();
+static void create_map();
+void createItem(int x, int y, int i);
+static void drawBitmapText();
+void SpecialInput(int key, int x, int y);
+
 /* 
 Radius Sunca - 	696.392 km - stavljamo na 1000
 Radius Zemlje - 6371 km - 109 puta manji od Sunca - stavljamo na 9.17
@@ -73,9 +79,10 @@ int main(int argc, char **argv)
 
     /* Registruju se callback funkcije. */
     glutKeyboardFunc(on_keyboard);
+    glutSpecialFunc(SpecialInput);
     glutReshapeFunc(on_reshape);
     glutDisplayFunc(on_display);
-
+    
     /* Obavlja se OpenGL inicijalizacija. */
     glClearColor(0,0,0,0);
     glEnable(GL_DEPTH_TEST);
@@ -99,6 +106,8 @@ static void initialize(void)
 
     /* Postavlja se boja pozadine. */
     glClearColor(0,0,0,0);
+
+    quad = gluNewQuadric();
 
     /* Ukljucuje se testiranje z-koordinate piksela. */
     glEnable(GL_DEPTH_TEST);
@@ -148,8 +157,8 @@ static void on_timer(int id)
     if (TIMER_ID != id)
         return;
 
-    hours += 0.05;
-    
+    hours += 0.2;
+
     glutPostRedisplay();
 
     if (animation_ongoing) {
@@ -164,7 +173,6 @@ static void on_keyboard(unsigned char key, int x, int y)
         /* Zavrsava se program. */
         exit(0);
         break;
-
     case 'g':
     case 'G':
         /* Pokrecemo animaciju */
@@ -173,39 +181,40 @@ static void on_keyboard(unsigned char key, int x, int y)
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
         }
         break;
-    case 'w':
-    case 'W':
-        motor-=1;
-        break;
-    case 'd':
-    case 'D':
-        motor2+=1;
+    case 's':
+    case 'S':
+        animation_ongoing = 0;
         break;
     case 'a':
     case 'A':
-        motor2-=1;
-        break;
-    case 's':
-    case 'S':
-        motor+=1;
-        break;
-    case 'h':
-    case 'H':
-        animation_ongoing = 0;
-        break;
-    case 'z':
-    case 'Z':
         camera -= 5;
         break;
-    case 'x':
-    case 'X':
+    case 'd':
+    case 'D':
         camera += 5;
         break;
 
     }
 }
 
-static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, GLUquadric* quad, float position) {
+void SpecialInput(int key, int x, int y) {
+    switch(key) {
+        case GLUT_KEY_UP:
+            goUD -= 1;
+            break;	
+        case GLUT_KEY_DOWN:
+            goUD += 1;
+            break;
+        case GLUT_KEY_LEFT:
+            goLR -= 1;
+            break;
+        case GLUT_KEY_RIGHT:
+            goLR += 1;    
+            break;
+    }
+}
+// f-ja koja iscrtava planetu
+static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, float position) {
     glPushMatrix();
         glRotatef(planet_revolution, 0,0,1);
         glTranslatef(distance,position,0); 
@@ -218,6 +227,7 @@ static void draw_planet(float planet_revolution, float planet_rotation, float di
 glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+// f-ja koja kreira texturu
 static void create_texture(int num, char* name, Image * image) {
     image_read(image, name);
 
@@ -254,23 +264,18 @@ static void on_display(void)
     /* Brise se prethodni sadrzaj prozora. */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
-    // gluLookAt(0, 0, 800, 300, 0, 0, 0, 1, 0);
-
-     glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
 
     glMatrixMode(GL_PROJECTION);
-	    glLoadIdentity();
-	    glOrtho(0 , widthW, 0 , heightW, -1, 1);
+	glLoadIdentity();
+	glOrtho(0 , widthW, 0 , heightW, -1, 1);
 
 
-
+    // Iscrtavamo pozadinu
     glBindTexture(GL_TEXTURE_2D, names[0]);
     glBegin(GL_QUADS);
-
         glTexCoord2f(0, 0);
         glVertex2i(0, 0);
 
@@ -293,37 +298,32 @@ static void on_display(void)
     
     glMatrixMode(GL_MODELVIEW); 
     glLoadIdentity();
-    // gluLookAt(700, 0, 900, 500, 0, 0, 0, 1, 0);
-    gluLookAt(ship_position[0] + 50 , ship_position[1] + 30, 20, 0, camera, 0, 0, 0, 1);
-    // gluLookAt(500, 0, 700, 0, 0, 0, 0, 1, 0);
-    // gluLookAt(100, 0, 1000, 0, 0, 0, 0, 1, 0);
+    gluLookAt(ship_position[0] + 60 , ship_position[1] + 30, 20, 0, camera, 0, 0, 0, 1);
+    create_map();
 
-    GLUquadric* quad = gluNewQuadric();
-    //glRotatef(motor2*50,0,0,1);
+    double clip_plane[] = {0, 0, 1, 0.3};
 
-    create_map(quad);
+    glClipPlane(GL_CLIP_PLANE0, clip_plane);
+    glEnable(GL_CLIP_PLANE0);
 
-    // drawBitmapText();
-
-    // glPushMatrix();
-    //     glTranslatef(500 - motor,300 + motor2,0); 
-    //     gluSphere(quad,2,50,50);
-    // glPopMatrix();
-
-    // glRotatef(motor2,0,0,1);
+    // letelica
     glPushMatrix();
-        ship_position[0] = 940 + motor;
-        ship_position[1] = 450 + motor2; 
-        printf("%f %f\n", ship_position[0],ship_position[1]);
         glTranslatef(ship_position[0],ship_position[1],ship_position[2]); 
         gluSphere(quad,1,50,50);
+        ship_position[0] = 940 + goUD;
+        ship_position[1] = 450 + goLR; 
     glPopMatrix();
+
+    glDisable(GL_CLIP_PLANE0);
+
+    if(foundedItems[0] && foundedItems[1])
+        drawBitmapText("Cestitamo!!!!!!!!!!!!");
 
     /* Nova slika se salje na ekran. */
     glutSwapBuffers();
 }
 
-static void create_map(GLUquadric* quad) {
+static void create_map() {
     // Ugao rotacije Sunca oko svoje ose 
     float sun_rotation = 360*hours/(30*24);
 
@@ -343,73 +343,65 @@ static void create_map(GLUquadric* quad) {
     float mercury_rotation = 360*hours/(58.7*24);
     
     // Merkur
-    draw_planet(mercury_revolution, mercury_rotation, 350, 3.51, 2, quad, 0);
+    draw_planet(mercury_revolution, mercury_rotation, 350, 3.51, 2, 0);
     
     // Uglovi Venerine revolucije i rotacije
     float venus_revolution = 360*hours/(224.7*24);
     float venus_rotation = 360*hours/(243*24); 
 
     // Venera
-    draw_planet(venus_revolution, venus_rotation, 400, 8.7, 3, quad,200);
-    int br = 0;
-    if(ship_position[0] > 395 & ship_position[0] < 405 & ship_position[1] > 145 & ship_position[1] < 155) {
-        br++;
-        printf("%d\n",br);
-    }
-    else {
-        glPushMatrix();
-            glColor3f(0,1,1);
-            glTranslatef(400,150,0); 
-            gluSphere(quad,1,50,50);
-        glPopMatrix();
-    }
-
-    
+    draw_planet(venus_revolution, venus_rotation, 400, 8.7, 3, 200);
 
     // Uglovi Zemljine revolucije i rotacije
     float earth_revolution = 360 * hours / (365 * 24);
     float earth_rotation = 360*hours/24;
 
     // Zemlja
-    draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, quad, 350);    
+    draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, 350);    
+
 
     // Uglovi Marsove revolucije i rotacije
     float mars_revolution = 360 * hours / (686.98 * 24);
     float mars_rotation = 360*hours/24.623;
 
     // Mars
-    draw_planet(mars_revolution, mars_rotation, 480, 4.88, 5, quad, 500);
+    draw_planet(mars_revolution, mars_rotation, 480, 4.88, 5, 500);
 
     // Uglovi Jupiterove revolucije i rotacije
     float jupiter_revolution = 360 * hours / (4332.59 * 24);
     float jupiter_rotation = 360*hours/9.912;
 
     // Jupiter
-    draw_planet(jupiter_revolution, jupiter_rotation, 600, 100, 6, quad,550);
+    draw_planet(jupiter_revolution, jupiter_rotation, 600, 100, 6,550);
     
     // Uglovi Saturnove revolucije i rotacije
     float saturn_revolution = 360 * hours / (10759 * 24);
     float saturn_rotation = 360*hours/10.656;
 
     // Saturn(600)
-    draw_planet(saturn_revolution, saturn_rotation, 800, 83.3, 7, quad,700);
+    draw_planet(saturn_revolution, saturn_rotation, 800, 83.3, 7, 700);
 
     // Uglovi Uranove revolucije i rotacije
     float uranus_revolution = 360 * hours / (30685 * 24);
     float uranus_rotation = 360*hours/17.24;
 
     // Uran
-    draw_planet(uranus_revolution, uranus_rotation, 930, 37, 8, quad,800);
+    draw_planet(uranus_revolution, uranus_rotation, 930, 37, 8,800);
 
     // Uglovi Neptunove revolucije i rotacije
     float neptune_revolution = 360 * hours / (60190 * 24);
     float neptune_rotation = 360*hours/19.1;
 
     // Neptun
-    draw_planet(neptune_revolution, neptune_rotation, 1010, 35.7, 9, quad, 900);
+    draw_planet(neptune_revolution, neptune_rotation, 1010, 35.7, 9, 900);
+
+    // Iscrtavamo item-e koje treba da sakupimo
+    createItem(900,500,0);
+    createItem(250,200,1);
 }
 
-void drawBitmapText() 
+// ispisujemo tekst
+static void drawBitmapText(char* msg) 
 {  
 	glMatrixMode(GL_PROJECTION); 
 	glPushMatrix();  
@@ -419,19 +411,28 @@ void drawBitmapText()
 	glLoadIdentity();
 	glColor3f(1, 0, 0);
 	gluOrtho2D(0.0, widthW, heightW, 0.0);                 
-	char display_string[32];
-	int words = sprintf(display_string,"%s", "Sakupio si:");
-    strcat(display_string, "3/5");
-	if(words < 0)
-		exit(1);
-	glRasterPos2i(10, heightW-10); 
-	int d = (int) strlen(display_string);
-	for (int i = 0; i < d; i++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, display_string[i]);
-	
+	int len = (int) strlen(msg);
+	for (int i = 0; i < len; i++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, msg[i]);
 	glMatrixMode(GL_PROJECTION); 
 	glPopMatrix(); 
 	glMatrixMode(GL_MODELVIEW); 
 	glPopMatrix(); 
 	glutPostRedisplay();
+}
+
+// Kreiramo item koji treba da se pokupi i proveravamo da li ga je korisnik pokupio
+void createItem(int x, int y, int i) {
+    if(((ship_position[0] > x-5) && (ship_position[0] < x+5) && (ship_position[1] > y-5) && (ship_position[1] < y+5)) || (foundedItems[i] == true)) {
+        if(foundedItems[i] == false) {
+            foundedItems[i] = true;
+        }
+    }
+    else {
+        glPushMatrix();
+            glColor3f(0,1,1);
+            glTranslatef(x,y,0); 
+            gluSphere(quad,0.5,50,50);
+        glPopMatrix();
+    }
 }
