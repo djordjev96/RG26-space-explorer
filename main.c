@@ -5,6 +5,7 @@
 #include "src/image.h"
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #define TIMER_ID 1
 #define TIMER_INTERVAL 20
@@ -26,6 +27,7 @@ static float goUD = 0;
 static float goLR = 0;
 static float camera = 0;
 static bool foundedItems[] = {false, false, false};
+static int speedOfGame = 1;
 static GLUquadric* quad;
 
 static int widthW,heightW;
@@ -41,28 +43,18 @@ static void draw_planet(float planet_revolution, float planet_rotation, float di
 static void create_texture(int num, char* name, Image * image);
 static void create_map();
 void createItem(int x, int y, int i);
-static void drawBitmapText();
 void SpecialInput(int key, int x, int y);
 
 /* 
-Radius Sunca - 	696.392 km - stavljamo na 1000
+Radius Sunca - 	696.392 km - stavljamo na 1000 - zbog prevelike vrednosti stavljamo na 300
 Radius Zemlje - 6371 km - 109 puta manji od Sunca - stavljamo na 9.17
-Udaljenost Zemlje od Sunca - 149.600.000 km - prevelika vrednost
-    pa cemo da stavimo kao tri puta radius sunca
 Radius Merkura - 2439,7 km - 285 puta manji od sunca - stavljamo na 3.51
-Udaljenost Merkura od Sunca - 57.910.000 km - stavljamo na 120
 Radius Venere - 6051,8 km - 115 puta manji od Sunca - stavljamo na 8.7
-Udaljenost Venere od Sunca - 108.200.000 km - stavljamo na 217.4
 Radius Marsa - 3.389,5 km - 205 puta manji od Sunca - stavljamo na 4.88
-Udaljenost Marsa od Sunca - 227.900.000 km - stavljamo na 461.5
 Radius Jupitera - 69.911 km - 10 puta manji od sunca - stavljamo na 100
-Udaljenost Jupitera od Sunca - 778.500.000 km - (1562.5) ali zbog prevelike vrednosti cemo staviti na 600
 Radius Saturna - 58.232 km  - 12 puta manji od Sunca - stavljamo na 83.3
-Udaljenost Saturna od Sunca - 1.434.000.000 km - (prevelika vrednost) stavicemo na 750
 Radius Urana - 25.362 km - 27 puta manji od Sunca - stavljamo na 37
-Udaljenost Urana od Sunca - 2.871.000.000 km - stavljamo na 850
 Radius Neptuna - 24.622 km - 28 puta manji od Sunca - stavljamo na 35.7
-Udaljenost Neptuna od Sunca - 4.495.000.000 km - stavljamo na 900
 */
 
 
@@ -156,8 +148,15 @@ static void on_timer(int id)
 {
     if (TIMER_ID != id)
         return;
-
-    hours += 0.2;
+    if(speedOfGame == 1) {
+        hours += 0.2;
+    }
+    else if(speedOfGame == 2) {
+        hours += 2;    
+    }
+    else if(speedOfGame == 3) {
+        hours += 10;    
+    }
 
     glutPostRedisplay();
 
@@ -193,35 +192,46 @@ static void on_keyboard(unsigned char key, int x, int y)
     case 'D':
         camera += 5;
         break;
-
+    case '1':
+        speedOfGame = 1;
+        break;
+    case '2':
+        speedOfGame = 2;
+        break;
+    case '3':
+        speedOfGame = 3;
+        break;
     }
 }
 
 void SpecialInput(int key, int x, int y) {
     switch(key) {
         case GLUT_KEY_UP:
-            goUD -= 1;
+            goUD -= 2;
             break;	
         case GLUT_KEY_DOWN:
-            goUD += 1;
+            goUD += 2;
             break;
         case GLUT_KEY_LEFT:
-            goLR -= 1;
+            goLR -= 2;
             break;
         case GLUT_KEY_RIGHT:
-            goLR += 1;    
+            goLR += 2;    
             break;
     }
 }
 // f-ja koja iscrtava planetu
 static void draw_planet(float planet_revolution, float planet_rotation, float distance, float size, int planet_num, float position) {
     glPushMatrix();
-        glRotatef(planet_revolution, 0,0,1);
+        glRotatef(planet_revolution,0,0,1);
         glTranslatef(distance,position,0); 
         glRotatef(planet_rotation, 0,0,1);
         gluQuadricNormals(quad, GLU_SMOOTH);
 	    gluQuadricTexture(quad, GL_TRUE);
         glBindTexture(GL_TEXTURE_2D, names[planet_num]);
+        if(planet_num == 7) {
+            gluDisk(quad, 90, 150, 50, 50);
+        }
         gluSphere(quad,size,50,50);
     glPopMatrix();
 glBindTexture(GL_TEXTURE_2D, 0);
@@ -310,15 +320,22 @@ static void on_display(void)
     glPushMatrix();
         glTranslatef(ship_position[0],ship_position[1],ship_position[2]); 
         gluSphere(quad,1,50,50);
+        printf("%f %f\n", ship_position[0], ship_position[1]);
         ship_position[0] = 940 + goUD;
         ship_position[1] = 450 + goLR; 
     glPopMatrix();
 
     glDisable(GL_CLIP_PLANE0);
 
-    if(foundedItems[0] && foundedItems[1])
-        drawBitmapText("Cestitamo!!!!!!!!!!!!");
+    if(foundedItems[0] && foundedItems[1] && foundedItems[2]) {
+        printf("Uspesno si pronasao sve resurse");
+    }
 
+    if(ship_position[0] < 350) {    
+        printf("Bio si previse blizu Sunca");
+        goUD = 0;
+        goLR = 0;
+    }
     /* Nova slika se salje na ekran. */
     glutSwapBuffers();
 }
@@ -350,14 +367,14 @@ static void create_map() {
     float venus_rotation = 360*hours/(243*24); 
 
     // Venera
-    draw_planet(venus_revolution, venus_rotation, 400, 8.7, 3, 200);
+    draw_planet(venus_revolution, venus_rotation, 400, 8.7, 3, 80);
 
     // Uglovi Zemljine revolucije i rotacije
     float earth_revolution = 360 * hours / (365 * 24);
     float earth_rotation = 360*hours/24;
 
     // Zemlja
-    draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, 350);    
+    draw_planet(earth_revolution, earth_rotation, 450, 9.17, 4, 200);    
 
 
     // Uglovi Marsove revolucije i rotacije
@@ -365,7 +382,7 @@ static void create_map() {
     float mars_rotation = 360*hours/24.623;
 
     // Mars
-    draw_planet(mars_revolution, mars_rotation, 480, 4.88, 5, 500);
+    draw_planet(mars_revolution, mars_rotation, 485, 4.88, 5, 400);
 
     // Uglovi Jupiterove revolucije i rotacije
     float jupiter_revolution = 360 * hours / (4332.59 * 24);
@@ -378,47 +395,27 @@ static void create_map() {
     float saturn_revolution = 360 * hours / (10759 * 24);
     float saturn_rotation = 360*hours/10.656;
 
-    // Saturn(600)
-    draw_planet(saturn_revolution, saturn_rotation, 800, 83.3, 7, 700);
+    // Saturn
+    draw_planet(saturn_revolution, saturn_rotation, 900, 83.3, 7, 200);
 
     // Uglovi Uranove revolucije i rotacije
     float uranus_revolution = 360 * hours / (30685 * 24);
     float uranus_rotation = 360*hours/17.24;
 
     // Uran
-    draw_planet(uranus_revolution, uranus_rotation, 930, 37, 8,800);
+    draw_planet(uranus_revolution, uranus_rotation, 1050, 37, 8,0);
 
     // Uglovi Neptunove revolucije i rotacije
     float neptune_revolution = 360 * hours / (60190 * 24);
     float neptune_rotation = 360*hours/19.1;
 
     // Neptun
-    draw_planet(neptune_revolution, neptune_rotation, 1010, 35.7, 9, 900);
+    draw_planet(neptune_revolution, neptune_rotation, 1130, 35.7, 9, 600);
 
     // Iscrtavamo item-e koje treba da sakupimo
     createItem(900,500,0);
-    createItem(250,200,1);
-}
-
-// ispisujemo tekst
-static void drawBitmapText(char* msg) 
-{  
-	glMatrixMode(GL_PROJECTION); 
-	glPushMatrix();  
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW); 
-	glPushMatrix(); 
-	glLoadIdentity();
-	glColor3f(1, 0, 0);
-	gluOrtho2D(0.0, widthW, heightW, 0.0);                 
-	int len = (int) strlen(msg);
-	for (int i = 0; i < len; i++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, msg[i]);
-	glMatrixMode(GL_PROJECTION); 
-	glPopMatrix(); 
-	glMatrixMode(GL_MODELVIEW); 
-	glPopMatrix(); 
-	glutPostRedisplay();
+    createItem(450,250,1);
+    createItem(1150,500,2);
 }
 
 // Kreiramo item koji treba da se pokupi i proveravamo da li ga je korisnik pokupio
