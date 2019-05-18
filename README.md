@@ -40,4 +40,4 @@ POMOC: Prvi resurs je odmah izmedju letelice i Jupitera, sledeci se nalazi u bli
 Ne idite previse blizu Suncu.
 
 ## Autor
-Djordje Vujinovic 481/17
+[Djordje Vujinovic 481/17](https://github.com/djordjev96)
